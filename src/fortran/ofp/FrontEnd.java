@@ -230,6 +230,10 @@ public class FrontEnd implements Callable<Boolean> {
 
 		includeDirs = new ArrayList<String>();
 
+		if (! checkArgs(args) ) {
+			System.exit(1);
+		}
+		
 		hasErrorOccurred = treatArgs(args, newArgs).booleanValue();
 
 		// Reports are that ROSE sometimes doesn't get notification
@@ -237,6 +241,49 @@ public class FrontEnd implements Callable<Boolean> {
 		if (hasErrorOccurred) System.exit(1);
 	} // end main()
 
+	
+	private static Boolean checkArgs(String[] args) {
+		int nArgs = 0;
+
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--RiceCAF")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--LOPExt")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--dump")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--verbose")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--silent")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--tokenfile")) {
+				i += 1;
+				nArgs += 2;
+			} else if (args[i].startsWith("--alltokens")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--tokens")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--class")) {
+				i += 1;
+				nArgs += 2;
+			} else if (args[i].startsWith("-I")) {
+				nArgs += 1;
+			} else if (args[i].startsWith("--")) {
+				i += 1;
+				nArgs += 2;
+			}
+		}
+
+		if (args.length <= nArgs) {
+			System.out.println("Usage: java fortran.ofp.FrontEnd "
+					+ "[--verbose] [--tokens] [--silent] [--class className] ");
+			System.out.println("                                    "
+					+ "[--user_option user_arg] file1 [file2..fileN]");
+			
+			return false;
+		}
+		return true;
+	}
 	
 	private static Boolean treatArgs(String[] args, ArrayList<String> newArgs)
 			throws IOException, Exception {
