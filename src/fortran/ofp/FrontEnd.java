@@ -233,8 +233,6 @@ public class FrontEnd implements Callable<Boolean> {
       ArrayList<String> newArgs = new ArrayList<String>(0);
       String type = "fortran.ofp.parser.java.FortranParserActionNull";
       int nArgs = 0;
-      boolean rice_caf = false;
-      boolean lanl_extensions = false;
 
       includeDirs = new ArrayList<String>();
 
@@ -243,12 +241,10 @@ public class FrontEnd implements Callable<Boolean> {
       for (int i = 0; i < args.length; i++) {
          if (args[i].startsWith("--RiceCAF")) {
             newArgs.add(args[i]);
-            rice_caf = true;
             nArgs += 1;
             continue;
          } else if (args[i].startsWith("--LOPExt")) {
             newArgs.add(args[i]);
-            lanl_extensions = true;
             nArgs += 1;
             continue;
          } else if (args[i].startsWith("--dump")) {
