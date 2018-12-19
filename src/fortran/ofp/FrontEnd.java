@@ -293,61 +293,42 @@ public class FrontEnd implements Callable<Boolean> {
 		Boolean dumpTokens = false;
 		Boolean dumpAllTokens = false;
 		String tokenFile = null;
-		int nArgs = 0;
 
 		// Get the arguments. Use --silent --verbose, and --dump as shorthand
 		// so we don't have to specify explicit class names on the command line.
 		for (int i = 0; i < args.length; i++) {
 			if (args[i].startsWith("--RiceCAF")) {
 				newArgs.add(args[i]);
-				nArgs += 1;
 			} else if (args[i].startsWith("--LOPExt")) {
 				newArgs.add(args[i]);
-				nArgs += 1;
 			} else if (args[i].startsWith("--dump")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				silent = false;
-				nArgs += 1;
 			} else if (args[i].startsWith("--verbose")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				verbose = true;
 				silent = false;
-				nArgs += 1;
 			} else if (args[i].startsWith("--silent")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				silent = true;
-				nArgs += 1;
 			} else if (args[i].startsWith("--tokenfile")) {
 				i += 1;
 				tokenFile = args[i];
-				nArgs += 2;
 			} else if (args[i].startsWith("--alltokens")) {
 				dumpAllTokens = true;
-				nArgs += 1;
 			} else if (args[i].startsWith("--tokens")) {
 				dumpTokens = true;
-				nArgs += 1;
 			} else if (args[i].startsWith("--class")) {
 				i += 1;
 				type = args[i];
-				nArgs += 2;
 			} else if (args[i].startsWith("-I")) {
 				/* Skip the include dir stuff; it's handled by the lexer. */
-				nArgs += 1;
 				includeDirs.add(args[i].substring(2, args[i].length()));
 			} else if (args[i].startsWith("--")) {
 				newArgs.add(args[i]);
 				newArgs.add(args[i + 1]);
 				i += 1;
-				nArgs += 2;
 			}
-		}
-
-		if (args.length <= nArgs) {
-			System.out.println("Usage: java fortran.ofp.FrontEnd "
-					+ "[--verbose] [--tokens] [--silent] [--class className] ");
-			System.out.println("                                    "
-					+ "[--user_option user_arg] file1 [file2..fileN]");
 		}
 
 		for (int i = 0; i < args.length; i++) {
