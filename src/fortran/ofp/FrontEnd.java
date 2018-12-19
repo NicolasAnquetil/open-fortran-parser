@@ -38,394 +38,400 @@ import java.util.concurrent.Callable;
 
 public class FrontEnd implements Callable<Boolean> {
 
-   private FortranStream inputStream;
-   private FortranTokenStream tokens;
-   private FortranLexer lexer;
-   private IFortranParser parser;
-   private FortranLexicalPrepass prepass;
-   private String filename;
-   private int sourceForm;
-   private boolean verbose = false;
-   private static boolean hasErrorOccurred = false;
-   private static ArrayList<String> includeDirs;
+	private FortranStream inputStream;
+	private FortranTokenStream tokens;
+	private FortranLexer lexer;
+	private IFortranParser parser;
+	private FortranLexicalPrepass prepass;
+	private String filename;
+	private int sourceForm;
+	private boolean verbose = false;
+	private static boolean hasErrorOccurred = false;
+	private static ArrayList<String> includeDirs;
+	private static String type;
 
-   public FrontEnd(String[] args, String filename, String type)
-   throws IOException {
-      boolean riceCAF = false;
-      boolean lanlExtensions = false;
-      
-      File file = new File(filename);
-      String path = file.getAbsolutePath();
+	public FrontEnd(String[] args, String filename, String type)
+			throws IOException {
+		boolean riceCAF = false;
+		boolean lanlExtensions = false;
 
-      this.inputStream = new FortranStream(filename);
-      this.lexer = new FortranLexer(inputStream);
+		File file = new File(filename);
+		String path = file.getAbsolutePath();
 
-      // Changes associated with antlr version 3.3 require that includeDirs
-      // be set here as the tokens are loaded by the constructor.
-      this.lexer.setIncludeDirs(includeDirs);
-      this.tokens = new FortranTokenStream(lexer);
-      
-      // check to see if using RiceCAF parser extensions
-      //
-      for (int i = 0; i < args.length; i++) {
-         if (args[i].startsWith("--RiceCAF")) {
-            riceCAF = true;
-         }
-      }
+		this.inputStream = new FortranStream(filename);
+		this.lexer = new FortranLexer(inputStream);
 
-      // check to see if using LOPe parser extensions
-      //
-      for (int i = 0; i < args.length; i++) {
-         if (args[i].startsWith("--LOPExt")) {
-            lanlExtensions = true;
-         }
-      }
+		// Changes associated with antlr version 3.3 require that includeDirs
+		// be set here as the tokens are loaded by the constructor.
+		this.lexer.setIncludeDirs(includeDirs);
+		this.tokens = new FortranTokenStream(lexer);
 
-      if (riceCAF == true) {
-         // laksono 08.06.2010: only output if we have --verbose option set
-   	 if (verbose) {
-            System.out.println("FortranLexer: using Rice University's CAF extensions");
-            System.out.println("ERROR: Not available at this time");
-            System.exit(1);
-         }
-         // this.parser = new FortranParserRiceCAF(tokens);
-      }
-      else if (lanlExtensions == true) {
-   	 if (verbose) {
-            System.out.println("FortranLexer: using OFP's LOPe research extensions");
-            System.out.println("ERROR: Not available at this time");
-            System.exit(1);
-         }
-         // this.parser = new FortranParserLOPe(tokens);
-      }
-      else {
-         this.parser = new FortranParser2008(tokens);
-      }
+		// check to see if using RiceCAF parser extensions
+		//
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--RiceCAF")) {
+				riceCAF = true;
+			}
+		}
 
-      this.parser.initialize(args, type, filename, path);
+		// check to see if using LOPe parser extensions
+		//
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--LOPExt")) {
+				lanlExtensions = true;
+			}
+		}
 
-      this.prepass = new FortranLexicalPrepass(lexer, tokens, parser);
-      this.filename = filename;
-      this.sourceForm = inputStream.getSourceForm();
-   }
+		if (riceCAF == true) {
+			// laksono 08.06.2010: only output if we have --verbose option set
+			if (verbose) {
+				System.out.println("FortranLexer: using Rice University's CAF extensions");
+				System.out.println("ERROR: Not available at this time");
+				System.exit(1);
+			}
+			// this.parser = new FortranParserRiceCAF(tokens);
+		}
+		else if (lanlExtensions == true) {
+			if (verbose) {
+				System.out.println("FortranLexer: using OFP's LOPe research extensions");
+				System.out.println("ERROR: Not available at this time");
+				System.exit(1);
+			}
+			// this.parser = new FortranParserLOPe(tokens);
+		}
+		else {
+			this.parser = new FortranParser2008(tokens);
+		}
 
-   private static boolean parseMainProgram(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      // try parsing the main program
-      parser.main_program();
+		this.parser.initialize(args, type, filename, path);
 
-      return parser.hasErrorOccurred();
-   } // end parseMainProgram()
+		this.prepass = new FortranLexicalPrepass(lexer, tokens, parser);
+		this.filename = filename;
+		this.sourceForm = inputStream.getSourceForm();
+	}
 
-   private static boolean parseModule(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      parser.module();
-      return parser.hasErrorOccurred();
-   } // end parseModule()
+	private static boolean parseMainProgram(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		// try parsing the main program
+		parser.main_program();
 
-   private static boolean parseSubmodule(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      parser.submodule();
-      return parser.hasErrorOccurred();
-   } // end parseSubmodule()
+		return parser.hasErrorOccurred();
+	} // end parseMainProgram()
 
-   private static boolean parseBlockData(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      parser.block_data();
+	private static boolean parseModule(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		parser.module();
+		return parser.hasErrorOccurred();
+	} // end parseModule()
 
-      return parser.hasErrorOccurred();
-   } // end parseBlockData()
+	private static boolean parseSubmodule(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		parser.submodule();
+		return parser.hasErrorOccurred();
+	} // end parseSubmodule()
 
-   private static boolean parseSubroutine(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      parser.subroutine_subprogram();
+	private static boolean parseBlockData(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		parser.block_data();
 
-      return parser.hasErrorOccurred();
-   } // end parserSubroutine()
+		return parser.hasErrorOccurred();
+	} // end parseBlockData()
 
-   private static boolean parseFunction(FortranTokenStream tokens,
-         IFortranParser parser, int start) throws Exception {
-      parser.ext_function_subprogram();
-      return parser.hasErrorOccurred();
-   } // end parseFunction()
+	private static boolean parseSubroutine(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		parser.subroutine_subprogram();
 
-   private static boolean parseProgramUnit(FortranLexer lexer,
-         FortranTokenStream tokens, IFortranParser parser) throws Exception {
-      int firstToken;
-      int lookAhead = 1;
-      int start;
-      boolean error = false;
+		return parser.hasErrorOccurred();
+	} // end parserSubroutine()
 
-      // check for opening with an include file
-      parser.checkForInclude();
+	private static boolean parseFunction(FortranTokenStream tokens,
+			IFortranParser parser, int start) throws Exception {
+		parser.ext_function_subprogram();
+		return parser.hasErrorOccurred();
+	} // end parseFunction()
 
-      // first token on the *line*. will check to see if it's
-      // equal to module, block, etc. to determine what rule of
-      // the grammar to start with.
-      try {
-         lookAhead = 1;
-         do {
-            firstToken = tokens.LA(lookAhead);
-            lookAhead++;
-         } while (firstToken == FortranLexer.LINE_COMMENT
-               || firstToken == FortranLexer.T_EOS);
+	private static boolean parseProgramUnit(FortranLexer lexer,
+			FortranTokenStream tokens, IFortranParser parser) throws Exception {
+		int firstToken;
+		int lookAhead = 1;
+		int start;
+		boolean error = false;
+
+		// check for opening with an include file
+		parser.checkForInclude();
+
+		// first token on the *line*. will check to see if it's
+		// equal to module, block, etc. to determine what rule of
+		// the grammar to start with.
+		try {
+			lookAhead = 1;
+			do {
+				firstToken = tokens.LA(lookAhead);
+				lookAhead++;
+			} while (firstToken == FortranLexer.LINE_COMMENT
+					|| firstToken == FortranLexer.T_EOS);
 
 
-         // mark the location of the first token we're looking at
-         start = tokens.mark();
+			// mark the location of the first token we're looking at
+			start = tokens.mark();
 
-         // attempt to match the program unit
-         // each of the parse routines called will first try and match
-         // the unit they represent (function, block, etc.). if that
-         // fails, they may or may not try and match it as a main
-         // program; it depends on how it fails.
-         //
-         // due to Sale's algorithm, we know that if the token matches
-         // then the parser should be able to successfully match.
-         //
-         if (firstToken != FortranLexer.EOF) {
-            // CER (2011.10.18): Module is now (F2008) a prefix-spec so
-            // must look for subroutine and functions before module stmts.
-            // Part of fix for bug 3425005.
-            if (tokens.lookForToken(FortranLexer.T_SUBROUTINE) == true) {
-               // try matching a subroutine
-               error = parseSubroutine(tokens, parser, start);
-            }
-            else if (tokens.lookForToken(FortranLexer.T_FUNCTION) == true) {
-               // try matching a function
-               error = parseFunction(tokens, parser, start);
-            }
-            else if (firstToken == FortranLexer.T_MODULE
-                     && tokens.LA(lookAhead) != FortranLexer.T_PROCEDURE) {
-               // try matching a module
-               error = parseModule(tokens, parser, start);
-            }
-            else if (firstToken == FortranLexer.T_SUBMODULE) {
-               // try matching a submodule
-               error = parseSubmodule(tokens, parser, start);
-            }
-            else if ( firstToken == FortranLexer.T_BLOCKDATA
-                  || (firstToken == FortranLexer.T_BLOCK
-                  && tokens.LA(lookAhead) == FortranLexer.T_DATA)) {
-               // try matching block data
-               error = parseBlockData(tokens, parser, start);
-            }
-            else {
-               // what's left should be a main program
-               error = parseMainProgram(tokens, parser, start);
-            } // end else(unhandled token)
-         } // end if(file had nothing but comments empty)
-      } catch (RecognitionException e) {
-         e.printStackTrace();
-         error = true;
-      } // end try/catch(parsing program unit)
+			// attempt to match the program unit
+			// each of the parse routines called will first try and match
+			// the unit they represent (function, block, etc.). if that
+			// fails, they may or may not try and match it as a main
+			// program; it depends on how it fails.
+			//
+			// due to Sale's algorithm, we know that if the token matches
+			// then the parser should be able to successfully match.
+			//
+			if (firstToken != FortranLexer.EOF) {
+				// CER (2011.10.18): Module is now (F2008) a prefix-spec so
+				// must look for subroutine and functions before module stmts.
+				// Part of fix for bug 3425005.
+				if (tokens.lookForToken(FortranLexer.T_SUBROUTINE) == true) {
+					// try matching a subroutine
+					error = parseSubroutine(tokens, parser, start);
+				}
+				else if (tokens.lookForToken(FortranLexer.T_FUNCTION) == true) {
+					// try matching a function
+					error = parseFunction(tokens, parser, start);
+				}
+				else if (firstToken == FortranLexer.T_MODULE
+						&& tokens.LA(lookAhead) != FortranLexer.T_PROCEDURE) {
+					// try matching a module
+					error = parseModule(tokens, parser, start);
+				}
+				else if (firstToken == FortranLexer.T_SUBMODULE) {
+					// try matching a submodule
+					error = parseSubmodule(tokens, parser, start);
+				}
+				else if ( firstToken == FortranLexer.T_BLOCKDATA
+						|| (firstToken == FortranLexer.T_BLOCK
+						&& tokens.LA(lookAhead) == FortranLexer.T_DATA)) {
+					// try matching block data
+					error = parseBlockData(tokens, parser, start);
+				}
+				else {
+					// what's left should be a main program
+					error = parseMainProgram(tokens, parser, start);
+				} // end else(unhandled token)
+			} // end if(file had nothing but comments empty)
+		} catch (RecognitionException e) {
+			e.printStackTrace();
+			error = true;
+		} // end try/catch(parsing program unit)
 
-      return error;
-   } // end parseProgramUnit()
+		return error;
+	} // end parseProgramUnit()
 
-   public static void main(String args[]) throws Exception {
-      Boolean error = false;
-      Boolean verbose = false;
-      Boolean silent = true;
-      Boolean dumpTokens = false;
-      Boolean dumpAllTokens = false;
-      String tokenFile = null;
-      ArrayList<String> newArgs = new ArrayList<String>(0);
-      String type = "fortran.ofp.parser.java.FortranParserActionNull";
-      int nArgs = 0;
+	public static void main(String args[]) throws Exception {
+		ArrayList<String> newArgs = new ArrayList<String>(0);
+		type = "fortran.ofp.parser.java.FortranParserActionNull";
 
-      includeDirs = new ArrayList<String>();
+		includeDirs = new ArrayList<String>();
 
-      // Get the arguments. Use --silent --verbose, and --dump as shorthand
-      // so we don't have to specify explicit class names on the command line.
-      for (int i = 0; i < args.length; i++) {
-         if (args[i].startsWith("--RiceCAF")) {
-            newArgs.add(args[i]);
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--LOPExt")) {
-            newArgs.add(args[i]);
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--dump")) {
-            type = "fortran.ofp.parser.java.FortranParserActionPrint";
-            silent = false;
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--verbose")) {
-            type = "fortran.ofp.parser.java.FortranParserActionPrint";
-            verbose = true;
-            silent = false;
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--silent")) {
-            type = "fortran.ofp.parser.java.FortranParserActionPrint";
-            silent = true;
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--tokenfile")) {
-            i += 1;
-            tokenFile = args[i];
-            nArgs += 2;
-            continue;
-         } else if (args[i].startsWith("--alltokens")) {
-            dumpAllTokens = true;
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--tokens")) {
-            dumpTokens = true;
-            nArgs += 1;
-            continue;
-         } else if (args[i].startsWith("--class")) {
-            i += 1;
-            type = args[i];
-            nArgs += 2;
-            continue;
-         } else if (args[i].startsWith("-I")) {
-            /* Skip the include dir stuff; it's handled by the lexer. */
-            nArgs += 1;
-            includeDirs.add(args[i].substring(2, args[i].length()));
-         } else if (args[i].startsWith("--")) {
-            newArgs.add(args[i]);
-            newArgs.add(args[i + 1]);
-            i += 1;
-            nArgs += 2;
-            continue;
-         }
-      }
+		hasErrorOccurred = treatArgs(args, newArgs).booleanValue();
 
-      if (args.length <= nArgs) {
-         System.out.println("Usage: java fortran.ofp.FrontEnd "
-               + "[--verbose] [--tokens] [--silent] [--class className] ");
-         System.out.println("                                    "
-               + "[--user_option user_arg] file1 [file2..fileN]");
-      }
+		// Reports are that ROSE sometimes doesn't get notification
+		// of a failure.  Try calling exit directly with an error condition.
+		if (hasErrorOccurred) System.exit(1);
+	} // end main()
 
-      for (int i = 0; i < args.length; i++) {
-         // skip args that are not files
-         //
-         if (args[i].startsWith("--RiceCAF") | args[i].startsWith("--LOPExt") | 
-             args[i].startsWith("--dump")    | args[i].startsWith("--silent") |
-             args[i].startsWith("--verbose") | args[i].startsWith("--tokens") |
-                                               args[i].startsWith("--alltokens")) {
-            continue;
-         } else if (args[i].startsWith("-I")) {
-            /* Skip the include dir stuff; it's handled by the lexer. */
-            continue;
-         } else if (args[i].startsWith("--")) {
-            i += 1;
-            continue;
-         }
-         if (verbose) {
-            System.out
-            .println("*******************************************");
-            System.out.println("args[" + i + "]: " + args[i]);
-         }
+	private static Boolean treatArgs(String[] args, ArrayList<String> newArgs)
+			throws IOException, Exception {
+		Boolean error = false;
+		Boolean verbose = false;
+		Boolean silent = true;
+		Boolean dumpTokens = false;
+		Boolean dumpAllTokens = false;
+		String tokenFile = null;
+		int nArgs = 0;
 
-         /* Make sure the file exists. */
-         File srcFile = new File(args[i]);
-         if (srcFile.exists() == false) {
-            System.err.println("Error: " + args[i] + " does not exist!");
-            error = new Boolean(true);
-         } else {
-            includeDirs.add(srcFile.getParent());
-            FrontEnd ofp = new FrontEnd(newArgs.toArray(new String[newArgs.size()]), args[i], type);
-            ofp.setVerbose(verbose, silent);
-            if (ofp.getParser().getAction().getClass().getName() == "fortran.ofp.parser.java.FortranParserActionPrint") {
-               FortranParserActionPrint action = (FortranParserActionPrint) ofp.getParser().getAction();
-               // "verbose" in Print() is either "normal" or "verbose" here..
-               action.setVerbose(!silent);
-            }
+		// Get the arguments. Use --silent --verbose, and --dump as shorthand
+		// so we don't have to specify explicit class names on the command line.
+		for (int i = 0; i < args.length; i++) {
+			if (args[i].startsWith("--RiceCAF")) {
+				newArgs.add(args[i]);
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--LOPExt")) {
+				newArgs.add(args[i]);
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--dump")) {
+				type = "fortran.ofp.parser.java.FortranParserActionPrint";
+				silent = false;
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--verbose")) {
+				type = "fortran.ofp.parser.java.FortranParserActionPrint";
+				verbose = true;
+				silent = false;
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--silent")) {
+				type = "fortran.ofp.parser.java.FortranParserActionPrint";
+				silent = true;
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--tokenfile")) {
+				i += 1;
+				tokenFile = args[i];
+				nArgs += 2;
+				continue;
+			} else if (args[i].startsWith("--alltokens")) {
+				dumpAllTokens = true;
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--tokens")) {
+				dumpTokens = true;
+				nArgs += 1;
+				continue;
+			} else if (args[i].startsWith("--class")) {
+				i += 1;
+				type = args[i];
+				nArgs += 2;
+				continue;
+			} else if (args[i].startsWith("-I")) {
+				/* Skip the include dir stuff; it's handled by the lexer. */
+				nArgs += 1;
+				includeDirs.add(args[i].substring(2, args[i].length()));
+			} else if (args[i].startsWith("--")) {
+				newArgs.add(args[i]);
+				newArgs.add(args[i + 1]);
+				i += 1;
+				nArgs += 2;
+				continue;
+			}
+		}
 
-            if (dumpTokens) {
-               ofp.tokens.outputTokenList(ofp.parser.getAction());
-            }
-            else if (tokenFile != null && !dumpAllTokens) {
-               ofp.tokens.outputTokenList(tokenFile);
-            }
-            else {
-               error |= ofp.call();
-               if (dumpAllTokens && tokenFile != null) {
-                  ofp.tokens.outputTokenList(tokenFile);
-               }
-            }
-         }
+		if (args.length <= nArgs) {
+			System.out.println("Usage: java fortran.ofp.FrontEnd "
+					+ "[--verbose] [--tokens] [--silent] [--class className] ");
+			System.out.println("                                    "
+					+ "[--user_option user_arg] file1 [file2..fileN]");
+		}
 
-         if (verbose) {
-            System.out.println("********************************************");
-         }
+		for (int i = 0; i < args.length; i++) {
+			// skip args that are not files
+			//
+			if (args[i].startsWith("--RiceCAF") | args[i].startsWith("--LOPExt") | 
+					args[i].startsWith("--dump")    | args[i].startsWith("--silent") |
+					args[i].startsWith("--verbose") | args[i].startsWith("--tokens") |
+					args[i].startsWith("--alltokens")) {
+				continue;
+			} else if (args[i].startsWith("-I")) {
+				/* Skip the include dir stuff; it's handled by the lexer. */
+				continue;
+			} else if (args[i].startsWith("--")) {
+				i += 1;
+				continue;
+			}
+			if (verbose) {
+				System.out
+				.println("*******************************************");
+				System.out.println("args[" + i + "]: " + args[i]);
+			}
 
-      }
+			/* Make sure the file exists. */
+			File srcFile = new File(args[i]);
+			if (srcFile.exists() == false) {
+				System.err.println("Error: " + args[i] + " does not exist!");
+				error = new Boolean(true);
+			} else {
+				includeDirs.add(srcFile.getParent());
+				FrontEnd ofp = new FrontEnd(newArgs.toArray(new String[newArgs.size()]), args[i], type);
+				ofp.setVerbose(verbose, silent);
+				if (ofp.getParser().getAction().getClass().getName() == "fortran.ofp.parser.java.FortranParserActionPrint") {
+					FortranParserActionPrint action = (FortranParserActionPrint) ofp.getParser().getAction();
+					// "verbose" in Print() is either "normal" or "verbose" here..
+					action.setVerbose(!silent);
+				}
 
-      hasErrorOccurred = error.booleanValue();
+				if (dumpTokens) {
+					ofp.tokens.outputTokenList(ofp.parser.getAction());
+				}
+				else if (tokenFile != null && !dumpAllTokens) {
+					ofp.tokens.outputTokenList(tokenFile);
+				}
+				else {
+					error |= ofp.call();
+					if (dumpAllTokens && tokenFile != null) {
+						ofp.tokens.outputTokenList(tokenFile);
+					}
+				}
+			}
 
-      // Reports are that ROSE sometimes doesn't get notification
-      // of a failure.  Try calling exit directly with an error condition.
-      if (hasErrorOccurred) System.exit(1);
-   } // end main()
+			if (verbose) {
+				System.out.println("********************************************");
+			}
 
-   public void setVerbose(Boolean vFlag, Boolean sFlag) {
-      this.verbose = vFlag;
-   }
+		}
+		return error;
+	}
 
-   public IFortranParser getParser() {
-      return this.parser;
-   }
+	public void setVerbose(Boolean vFlag, Boolean sFlag) {
+		this.verbose = vFlag;
+	}
 
-   public Boolean call() throws Exception {
-      boolean error = false;
-      
-      int sourceForm = inputStream.getSourceForm();
+	public IFortranParser getParser() {
+		return this.parser;
+	}
 
-      if (sourceForm == FortranStream.FIXED_FORM)
-         if (verbose)       System.out.println(filename + " is FIXED FORM");
-         else if (verbose)  System.out.println(filename + " is FREE FORM");
+	public Boolean call() throws Exception {
+		boolean error = false;
 
-      // determine whether the file is fixed or free form and
-      // set the source form in the prepass so it knows how to handle lines.
-      prepass.setSourceForm(sourceForm);
+		int sourceForm = inputStream.getSourceForm();
 
-      // apply Sale's algorithm to the tokens to allow keywords
-      // as identifiers. also, fixup labeled do's, etc.
-      prepass.performPrepass();
+		if (sourceForm == FortranStream.FIXED_FORM)
+			if (verbose)       System.out.println(filename + " is FIXED FORM");
+			else if (verbose)  System.out.println(filename + " is FREE FORM");
 
-      // overwrite the old token stream with the (possibly) modified one
-      tokens.finalizeTokenStream();
+		// determine whether the file is fixed or free form and
+		// set the source form in the prepass so it knows how to handle lines.
+		prepass.setSourceForm(sourceForm);
 
-      // parse each program unit in a given file
-      while (tokens.LA(1) != FortranLexer.EOF) {
-         // attempt to parse the current program unit
-         error = parseProgramUnit(lexer, tokens, parser);
+		// apply Sale's algorithm to the tokens to allow keywords
+		// as identifiers. also, fixup labeled do's, etc.
+		prepass.performPrepass();
 
-         // see if we successfully parse the program unit or not
-         if (verbose && error) {
-            System.out.println("Parser failed");
-            return new Boolean(error);
-         }
-      } // end while (not end of file)
+		// overwrite the old token stream with the (possibly) modified one
+		tokens.finalizeTokenStream();
 
-      // Call the end_of_file action here so that it comes after the
-      // end_program_stmt occurs.
-      getParser().eofAction();
+		// parse each program unit in a given file
+		while (tokens.LA(1) != FortranLexer.EOF) {
+			// attempt to parse the current program unit
+			error = parseProgramUnit(lexer, tokens, parser);
 
-      // Call the cleanUp method for the give action class. This is more
-      // important in the case of a C action *class* since it could easily
-      // have created memory that's outside of the jvm.
-      getParser().getAction().cleanUp();
+			// see if we successfully parse the program unit or not
+			if (verbose && error) {
+				System.out.println("Parser failed");
+				return new Boolean(error);
+			}
+		} // end while (not end of file)
 
-      if (verbose) {
-         System.out.println("Parser exiting normally");
-      }
+		// Call the end_of_file action here so that it comes after the
+		// end_program_stmt occurs.
+		getParser().eofAction();
 
-      return new Boolean(error);
-   } // end call()
+		// Call the cleanUp method for the give action class. This is more
+		// important in the case of a C action *class* since it could easily
+		// have created memory that's outside of the jvm.
+		getParser().getAction().cleanUp();
 
-   public int getSourceForm() {
-      return this.sourceForm;
-   }
+		if (verbose) {
+			System.out.println("Parser exiting normally");
+		}
 
-   public static boolean getError() {
-      return hasErrorOccurred;
-   }
+		return new Boolean(error);
+	} // end call()
+
+	public int getSourceForm() {
+		return this.sourceForm;
+	}
+
+	public static boolean getError() {
+		return hasErrorOccurred;
+	}
 
 } // end class FrontEnd
