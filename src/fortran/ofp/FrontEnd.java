@@ -237,6 +237,7 @@ public class FrontEnd implements Callable<Boolean> {
 		if (hasErrorOccurred) System.exit(1);
 	} // end main()
 
+	
 	private static Boolean treatArgs(String[] args, ArrayList<String> newArgs)
 			throws IOException, Exception {
 		Boolean error = false;
@@ -253,45 +254,36 @@ public class FrontEnd implements Callable<Boolean> {
 			if (args[i].startsWith("--RiceCAF")) {
 				newArgs.add(args[i]);
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--LOPExt")) {
 				newArgs.add(args[i]);
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--dump")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				silent = false;
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--verbose")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				verbose = true;
 				silent = false;
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--silent")) {
 				type = "fortran.ofp.parser.java.FortranParserActionPrint";
 				silent = true;
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--tokenfile")) {
 				i += 1;
 				tokenFile = args[i];
 				nArgs += 2;
-				continue;
 			} else if (args[i].startsWith("--alltokens")) {
 				dumpAllTokens = true;
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--tokens")) {
 				dumpTokens = true;
 				nArgs += 1;
-				continue;
 			} else if (args[i].startsWith("--class")) {
 				i += 1;
 				type = args[i];
 				nArgs += 2;
-				continue;
 			} else if (args[i].startsWith("-I")) {
 				/* Skip the include dir stuff; it's handled by the lexer. */
 				nArgs += 1;
@@ -301,7 +293,6 @@ public class FrontEnd implements Callable<Boolean> {
 				newArgs.add(args[i + 1]);
 				i += 1;
 				nArgs += 2;
-				continue;
 			}
 		}
 
@@ -319,13 +310,10 @@ public class FrontEnd implements Callable<Boolean> {
 					args[i].startsWith("--dump")    | args[i].startsWith("--silent") |
 					args[i].startsWith("--verbose") | args[i].startsWith("--tokens") |
 					args[i].startsWith("--alltokens")) {
-				continue;
 			} else if (args[i].startsWith("-I")) {
 				/* Skip the include dir stuff; it's handled by the lexer. */
-				continue;
 			} else if (args[i].startsWith("--")) {
 				i += 1;
-				continue;
 			}
 			if (verbose) {
 				System.out
