@@ -40,7 +40,9 @@ CLASS_FILES = $(CLASSDIR)/FortranToken.class \
               $(CLASSDIR)/FortranParser.class \
               $(CLASSDIR)/FortranParser2008.class \
               $(CLASSDIR)/FortranParser2008_FortranParserBase.class \
-              $(CLASSDIR)/FortranStream.class \
+              $(CLASSDIR)/AbstractFortranStream.class \
+              $(CLASSDIR)/FortranFileStream.class \
+              $(CLASSDIR)/FortranStringStream.class \
               $(CLASSDIR)/FortranTokenStream.class \
               $(CLASSDIR)/FortranLexicalPrepass.class \
               $(CLASSDIR)/IActionEnums.class \
