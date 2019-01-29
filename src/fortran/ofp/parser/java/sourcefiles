@@ -7,12 +7,9 @@ FortranParser2008_FortranParserBase.java
 FortranParserActionFactory.java
 FortranParserActionNull.java
 FortranParserActionPrint.java
-AbstractFortranStream.java
-FortranFileStream.java
-FortranStringStream.java
+FortranStream.java
 FortranTokenStream.java
 IActionEnums.java
 IFortranParser.java
 IFortranParserAction.java
-IFortranStream.java
 ../../FrontEnd.java

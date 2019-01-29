@@ -45,15 +45,7 @@ import fortran.ofp.parser.java.FortranToken;
     private boolean includeLine;
     private boolean inFormat;
     private ArrayList<String> includeDirs;
-    private Stack<IFortranStream> oldStreams;
-
-    /**
-     * An option to try to ignore missing included files when parsing<BR>
-     * If true, missing included files will be replaced by an empty file
-     * and parsing will try to proceed.<br>
-     * <code>false</code> by default
-     */
-	private boolean ignoreMissingIncludes = false;
+    private Stack<FortranStream> oldStreams;
 
     protected StringBuilder whiteText = new StringBuilder();
 
@@ -272,7 +264,7 @@ import fortran.ofp.parser.java.FortranToken;
 
       if (tk.getType() == EOF) {
          Token eofToken;
-         IFortranStream fs = getInput();
+         FortranStream fs = getInput();
 
          tk.setChannel(Token.DEFAULT_CHANNEL);
          eofToken = new FortranToken(this.input, T_EOF, Token.DEFAULT_CHANNEL,
@@ -292,7 +284,7 @@ import fortran.ofp.parser.java.FortranToken;
             /* We have at least one previous input stream on the stack, 
                meaning we should be at the end of an included file.  
                Switch back to the previous stream and continue.  */
-            this.input = (CharStream)this.oldStreams.pop();
+            this.input = this.oldStreams.pop();
             /* Is this ok to do??  */
             resetLexerState();
          }
@@ -333,8 +325,8 @@ import fortran.ofp.parser.java.FortranToken;
     }// end getIgnoreChannelNumber()
 
     
-   public IFortranStream getInput() {
-      return (IFortranStream) this.input;
+   public FortranStream getInput() {
+      return (FortranStream) this.input;
    }
     
 
@@ -343,7 +335,7 @@ import fortran.ofp.parser.java.FortranToken;
     * init code.  It doesn't seem to do anything with the @init block below.
     * This is called by FortranMain().
     */
-   public FortranLexer(IFortranStream input)
+   public FortranLexer(FortranStream input)
    {
       super(input);
       this.sourceForm = input.getSourceForm();
@@ -351,7 +343,7 @@ import fortran.ofp.parser.java.FortranToken;
       this.continueFlag = false;
       this.includeLine = false;
       this.inFormat = false;
-      this.oldStreams = new Stack<IFortranStream>();
+      this.oldStreams = new Stack<FortranStream>();
    } // end constructor()
 
 
@@ -396,9 +388,6 @@ import fortran.ofp.parser.java.FortranToken;
         }
     } // end findFile()
 
-	public void setIgnoreMissingincludes(boolean b) {
-		ignoreMissingIncludes = b;
-	}
 
     private String includeFile() {
         String filename = "ERROR: no file name";
@@ -406,7 +395,7 @@ import fortran.ofp.parser.java.FortranToken;
 
         if (prevToken != null) {
             String charConst = null;
-            IFortranStream includedStream = null;
+            FortranStream includedStream = null;
 
             charConst = prevToken.getText();
             filename = charConst.substring(1, charConst.length()-1);
@@ -414,27 +403,18 @@ import fortran.ofp.parser.java.FortranToken;
             /* Find the file, including it's complete path.  */
             includedFile = findFile(filename);
             if (includedFile == null) {
-                if (ignoreMissingIncludes) {
-            		includedStream = new FortranStringStream("");  // empty included "file"
-                    // set a fake name to create a proper EOF token for this "file"
-            		((FortranStringStream)includedStream).setFileName(filename);
-           			includedFile = new File(filename);   // create a fake File for return statement
-                }
-                else {
-                    System.err.println("WARNING: Could not find file '" + filename + "'");
-                    return filename + ":ERROR_FILE_NOT_FOUND";
-               }
+                System.err.println("WARNING: Could not find file '" + filename + "'");
+                return filename + ":ERROR_FILE_NOT_FOUND";
             }
-            else {
-                /* Create a new stream for the included file.  */
-                try {
-                    // the included file should have the save source form as original
-                    includedStream = new FortranFileStream(filename, includedFile.getAbsolutePath(), this.sourceForm);
-                } catch(IOException e) {
-                    System.err.println("WARNING: Could not open file '" + filename + "'");
-                    e.printStackTrace();
-                    return includedFile.getAbsolutePath();
-                }
+
+            /* Create a new stream for the included file.  */
+            try {
+               // the included file should have the save source form as original
+               includedStream = new FortranStream(filename, includedFile.getAbsolutePath(), this.sourceForm);
+            } catch(IOException e) {
+                System.err.println("WARNING: Could not open file '" + filename + "'");
+                e.printStackTrace();
+                return includedFile.getAbsolutePath();
             }
             
             /* Save current character stream.  */
